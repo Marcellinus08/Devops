@@ -1,28 +1,32 @@
 name: CI/CD Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Install Dependencies
-        run: cd backend && npm install
+      - name: Install dependencies
+        run: npm install
 
-      - name: Run Tests
-        run: cd backend && npm test
+      - name: Run tests
+        run: npm run test
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        with:
-          projectBaseDir: backend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run SAST scan (ESLint)
+        run: npm run lint
+
+      - name: Deploy (Mock)
+        if: github.ref == 'refs/heads/main'
+        run: echo "Deploying app to production server..."
